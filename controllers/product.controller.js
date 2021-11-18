@@ -1,11 +1,65 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Product = require('./../models/product.model');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 const Size = require('./../models/size.model');
+const cloudinary = require('./../utils/cloudinary');
+
+const multerStorage = multer.memoryStorage();
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image,please upload only image', 400), false);
+  }
+};
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) return next();
+  // 1) cover image
+  req.body.imageCover = `product/${req.params.id}-${Date.now()}-cover`;
+
+  const imageCover = await sharp(req.files.imageCover[0].buffer)
+    .resize(550, 550)
+    .toFormat('jpeg')
+    .jpeg({ quality: 5 })
+    .toBuffer();
+  // .toFile(`public/img/products/${req.body.imageCover}`);
+  cloudinary.cloudUpload(imageCover, req.body.imageCover);
+  req.body.imageCover =
+    'https://res.cloudinary.com/dntc4uaqg/image/upload/' + req.body.imageCover;
+  req.body.images = [];
+  await Promise.all(
+    req.files.images.map(async (file, index) => {
+      let filename = `product/${req.params.id}-${Date.now()}-${index + 1}`;
+      let image = await sharp(file.buffer)
+        .resize(550, 550)
+        .toFormat('jpeg')
+        .jpeg({ quality: 5 })
+        .toBuffer();
+      // .toFile(`public/img/products/${filename}`);
+      cloudinary.cloudUpload(image, filename);
+      filename =
+        'https://res.cloudinary.com/dntc4uaqg/image/upload/' + filename;
+      req.body.images.push(filename);
+    })
+  );
+  next();
+});
+
+exports.uploadProductImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
 
 exports.getProducts = factory.getAll(Product);
-exports.getProductById = factory.getOne(Product);
+exports.getProductById = factory.getOne(Product, { path: 'reviews' });
 exports.deleteProduct = factory.deleteOne(Product);
 exports.createProduct = factory.createOne(Product);
 exports.updateProduct = factory.updateOne(Product);

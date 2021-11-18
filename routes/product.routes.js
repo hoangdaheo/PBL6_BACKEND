@@ -3,8 +3,10 @@ const router = express.Router();
 const productController = require('./../controllers/product.controller');
 const cartRouter = require('./cart.routes');
 const authController = require('./../controllers/auth.controller');
+const reviewRouter = require('./review.routes');
 
 router.use('/:productId/cart', cartRouter);
+router.use('/:productId/reviews', reviewRouter);
 
 router
   .route('/')
@@ -38,6 +40,8 @@ router
   .patch(
     authController.protect,
     authController.restrictTo('admin'),
+    productController.uploadProductImages,
+    productController.resizeTourImages,
     productController.updateProduct
   )
   .delete(

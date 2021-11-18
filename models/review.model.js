@@ -31,7 +31,7 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 reviewSchema.statics.calcAverageRatings = async function (productId) {
   const stats = await this.aggregate([
     {
@@ -51,21 +51,27 @@ reviewSchema.statics.calcAverageRatings = async function (productId) {
       ratingsAverage: stats[0].avgRating,
     });
   } else {
-    await Tour.findByIdAndUpdate(productId, {
+    await Product.findByIdAndUpdate(productId, {
       ratingsQuantity: 0,
       ratingsAverage: 4.5,
     });
   }
 };
 reviewSchema.post('save', function () {
+  // this points to current review
   this.constructor.calcAverageRatings(this.product);
 });
+
+// findByIdAndUpdate
+// findByIdAndDelete
 reviewSchema.pre(/^findOneAnd/, async function (next) {
   this.r = await this.findOne();
   next();
 });
+
 reviewSchema.post(/^findOneAnd/, async function () {
-  this.r.constructor.calcAverageRatings(this.r.product);
+  // await this.findOne(); does NOT work here, query has already executed
+  await this.r.constructor.calcAverageRatings(this.r.product);
 });
 
 const Review = mongoose.model('Review', reviewSchema);

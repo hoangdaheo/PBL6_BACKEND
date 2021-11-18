@@ -1,7 +1,6 @@
 const CartItem = require('./../models/cartItem.model');
 const Cart = require('./../models/cart.model');
 const catchAsync = require('./../utils/catchAsync');
-const factory = require('./handlerFactory');
 const AppError = require('../utils/appError');
 const Product = require('../models/product.model');
 const Size = require('../models/size.model');
@@ -10,7 +9,7 @@ function isFloat(n) {
 }
 exports.addItem = catchAsync(async (req, res, next) => {
   // :productId/cart/
-  const { productId } = req.params;
+  const productId = req.body.product ? req.body.product : req.params.productId;
   if (!productId) {
     return next(new AppError('Product is required', 404));
   }
@@ -20,24 +19,25 @@ exports.addItem = catchAsync(async (req, res, next) => {
   const { quantity, size } = req.body;
 
   const sizeAndQty = await Size.findOne({ product: productId, size: size });
-  if (!sizeAndQty || !quantity || !size) {
-    return next(new AppError('Can not add to cart', 404));
+  if (!sizeAndQty || !quantity || !size || sizeAndQty.quantity === 0) {
+    return next(
+      new AppError('Can not add to cart (Missing field or qty = 0)', 404)
+    );
   }
   if (quantity > sizeAndQty.quantity) {
     return next(
       new AppError('Your Quantity can not higher than product quantity')
     );
   }
-  console.log(req.user.id);
-  let cart = await Cart.findOne({ user: '617418d4a9dfd144896cfa03' });
+  let cart = await Cart.findOne({ user: req.user.id });
   if (!cart) {
-    await Cart.create({
+    cart = await Cart.create({
       cartItem: [],
-      user: '617418d4a9dfd144896cfa03',
+      user: req.user.id,
     });
   }
   const item = await CartItem.findOneAndUpdate(
-    { product: productId, userSize: size },
+    { product: productId, cart: cart.id, userSize: size },
     {
       userSize: size,
       userQuantity: quantity,
@@ -48,10 +48,10 @@ exports.addItem = catchAsync(async (req, res, next) => {
       rawResult: true,
     }
   );
-  console.log(item.lastErrorObject.updatedExisting);
+  console.log('NEW DOC', item.lastErrorObject.updatedExisting);
   if (!item.lastErrorObject.updatedExisting) {
     cart = await Cart.findOneAndUpdate(
-      { user: '617418d4a9dfd144896cfa03' },
+      { user: req.user.id },
       {
         $push: { cartItem: item.value._id },
       },
@@ -61,7 +61,7 @@ exports.addItem = catchAsync(async (req, res, next) => {
     );
     console.log('isnew', cart);
   } else {
-    cart = await Cart.findOne({ user: '617418d4a9dfd144896cfa03' });
+    cart = await Cart.findOne({ user: req.user.id });
     console.log('ismodified', cart);
   }
   res.status(200).json({
@@ -73,15 +73,55 @@ exports.addItem = catchAsync(async (req, res, next) => {
 });
 exports.removeItem = catchAsync(async (req, res, next) => {
   const cartItemArray = req.body.item;
-  const cart = await Cart.findOne({ user: '617418d4a9dfd144896cfa03' });
+  if (!cartItemArray) return next(new AppError('Item is require', 400));
+  const cart = await Cart.findOne({ user: req.user.id });
+  if (cart === null) return next(new AppError('User Cart is empty', 400));
   // const cartItemArray = cart.cartItem;
   cart.cartItem.pull(...cartItemArray);
-  const removedItem = await cart.save();
-  req.removedItem = removedItem;
+  await cart.save();
+  let orderItems = await Promise.all(
+    cartItemArray.map(async (item) => {
+      let cartItem = await CartItem.findById(item).populate('product');
+      let doc = await Size.findOne({
+        size: cartItem.userSize,
+        product: cartItem.product.id,
+      });
+      console.log('cart.controller.js:88', doc.size);
+
+      if (!cartItem) return false;
+      if (doc.quantity < cartItem.userQuantity) {
+        cartItem.userQuantity = doc.quantity;
+      }
+      if (cartItem.userQuantity === 0) return false;
+      cartItem = {
+        name: cartItem.product.name,
+        qty: cartItem.userQuantity,
+        size: cartItem.userSize,
+        image: cartItem.product.imageCover,
+        price: cartItem.product.price,
+        product: cartItem.product.id,
+      };
+      await CartItem.findByIdAndDelete(item);
+      return cartItem;
+    })
+  );
+  orderItems = orderItems.filter((item) => item !== false);
+  if (orderItems.length == 0)
+    return next(new AppError('Order must have an item', 400));
+  req.orderItems = orderItems;
+
   next();
-  // res.status(204).json({
-  //   status: 'success',
-  // });
+});
+exports.deleteItem = catchAsync(async (req, res, next) => {
+  const cartItem = req.body.item;
+  if (!cartItem) return next(new AppError('Item is require', 400));
+  const cart = await Cart.findOne({ user: req.user.id });
+  cart.cartItem.pull(cartItem);
+  await cart.save();
+  await CartItem.findByIdAndDelete(cartItem);
+  res.status(204).json({
+    status: 'success',
+  });
 });
 exports.updateItem = catchAsync(async (req, res, next) => {
   const { id, size, quantity } = req.body;
@@ -89,9 +129,9 @@ exports.updateItem = catchAsync(async (req, res, next) => {
   if (!cartItem) {
     return next(new AppError('The item is not existed!', 404));
   }
-  const productQuantity = (await Size.findOne({ product: cartItem.product }))
-    .quantity;
-  console.log(productQuantity);
+  const productQuantity = (
+    await Size.findOne({ product: cartItem.product, size: cartItem.userSize })
+  ).quantity;
   if (productQuantity < quantity) {
     return next(
       new AppError('Your quantity can not higher than product quantity', 404)
@@ -100,7 +140,6 @@ exports.updateItem = catchAsync(async (req, res, next) => {
   if (quantity < 0) {
     quantity = quantity * -1;
   }
-  console.log(typeof quantity);
   if (typeof quantity !== 'number' || isFloat(quantity)) {
     return next(new AppError('Wrong input', 404));
   }
@@ -116,4 +155,12 @@ exports.updateItem = catchAsync(async (req, res, next) => {
     },
   });
 });
-exports.getCart = factory.getOne(Cart, 'cartItem');
+exports.getCart = catchAsync(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user.id }).populate('cartItem');
+  res.status(200).json({
+    status: 'success',
+    data: {
+      cart,
+    },
+  });
+});

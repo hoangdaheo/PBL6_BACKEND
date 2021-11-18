@@ -5,6 +5,10 @@ const cartItemSchema = mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'Product',
   },
+  cart: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Cart',
+  },
   userSize: {
     type: String,
     required: [true, 'Please select your size'],

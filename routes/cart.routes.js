@@ -1,16 +1,18 @@
 const express = require('express');
-const router = express.Router({ mergeParams: true });
 const cartController = require('./../controllers/cart.controller');
 const authController = require('./../controllers/auth.controller');
+
+const router = express.Router({ mergeParams: true });
 
 router.use(authController.protect, authController.restrictTo('user'));
 router.route('/').post(cartController.addItem);
 
 router
   .route('/')
+  .get(cartController.getCart)
   .patch(cartController.updateItem)
-  .delete(cartController.removeItem);
+  .delete(cartController.deleteItem);
 
-router.route('/:id').get(cartController.getCart);
+// router.route('/:id').;
 
 module.exports = router;
