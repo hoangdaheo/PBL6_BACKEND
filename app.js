@@ -28,6 +28,9 @@ app.use('/api/v1/products', productRouter);
 app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.get('/', function (req, res) {
+  res.send('hello');
+});
 app.all('*', (req, res, next) => {
   next(new AppError(`Can not find ${req.originalUrl} on this server`));
 });
