@@ -4,7 +4,7 @@
   "description": "Backend for shop-pbl6 project",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "node server.js"
   },
   "author": "Nguyen Nguyen Hoang",
   "license": "ISC",
