@@ -1,7 +1,7 @@
 require('dotenv').config({ path: './../config.env' });
 const { promisify } = require('util');
 const cloudinary = require('cloudinary').v2;
-let streamifier = require('streamifier');
+const streamifier = require('streamifier');
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,

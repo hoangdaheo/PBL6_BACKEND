@@ -28,7 +28,7 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
   const imageCover = await sharp(req.files.imageCover[0].buffer)
     .resize(550, 550)
     .toFormat('jpeg')
-    .jpeg({ quality: 5 })
+    .jpeg({ quality: 50 })
     .toBuffer();
   // .toFile(`public/img/products/${req.body.imageCover}`);
   cloudinary.cloudUpload(imageCover, req.body.imageCover);
@@ -41,7 +41,7 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
       let image = await sharp(file.buffer)
         .resize(550, 550)
         .toFormat('jpeg')
-        .jpeg({ quality: 5 })
+        .jpeg({ quality: 50 })
         .toBuffer();
       // .toFile(`public/img/products/${filename}`);
       cloudinary.cloudUpload(image, filename);
