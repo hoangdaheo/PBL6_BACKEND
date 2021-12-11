@@ -11,7 +11,7 @@ const globalErrorHandler = require('./controllers/error.controller');
 const cors = require('cors');
 const app = express();
 app.use(cors());
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+// app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.options('*', cors());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
