@@ -120,17 +120,19 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 2) create checkout session
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    success_url: `${req.protocol}://${req.get('host')}/?tour=${
-      req.params.tourId
-    }&user=${req.user.id}&price=${tour.price}`,
-    cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
+    // success_url: `${req.protocol}://${req.get('host')}/?tour=${
+    //   req.params.tourId
+    // }&user=${req.user.id}&price=${tour.price}`,
+    // cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
+    success_url: `https://google.com`,
+    cancel_url: `https://google.com`,
     customer_email: req.user.email,
     client_reference_id: req.params.orderId,
     line_items: order.orderItems.map((item) => {
       return {
         name: item.name,
         description: item.size,
-        images: item.image,
+        images: [item.image],
         amount: item.price * 100,
         currency: 'usd',
         quantity: item.qty,

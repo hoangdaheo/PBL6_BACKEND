@@ -104,7 +104,7 @@ exports.updateQty = catchAsync(async (req, res, next) => {
     }
   );
   if (!updatedSize) {
-    return next(new AppError('Please write the correct size', 404));
+    return next(new AppError('Please write the correct size', 400));
   }
   res.status(200).json({
     status: 'success',

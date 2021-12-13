@@ -11,7 +11,7 @@ exports.addItem = catchAsync(async (req, res, next) => {
   // :productId/cart/
   const productId = req.body.product ? req.body.product : req.params.productId;
   if (!productId) {
-    return next(new AppError('Product is required', 404));
+    return next(new AppError('Product is required', 400));
   }
   if (!(await Product.findById(productId))) {
     return next(new AppError('Can not find product', 404));
@@ -21,7 +21,7 @@ exports.addItem = catchAsync(async (req, res, next) => {
   const sizeAndQty = await Size.findOne({ product: productId, size: size });
   if (!sizeAndQty || !quantity || !size || sizeAndQty.quantity === 0) {
     return next(
-      new AppError('Can not add to cart (Missing field or qty = 0)', 404)
+      new AppError('Can not add to cart (Missing field or qty = 0)', 400)
     );
   }
   if (quantity > sizeAndQty.quantity) {
@@ -134,14 +134,14 @@ exports.updateItem = catchAsync(async (req, res, next) => {
   ).quantity;
   if (productQuantity < quantity) {
     return next(
-      new AppError('Your quantity can not higher than product quantity', 404)
+      new AppError('Your quantity can not higher than product quantity', 400)
     );
   }
   if (quantity < 0) {
     quantity = quantity * -1;
   }
   if (typeof quantity !== 'number' || isFloat(quantity)) {
-    return next(new AppError('Wrong input', 404));
+    return next(new AppError('Wrong input', 400));
   }
   const updatedItem = await CartItem.findByIdAndUpdate(
     id,
