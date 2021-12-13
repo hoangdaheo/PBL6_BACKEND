@@ -121,7 +121,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   if (order.pendingTime > Date.now()) {
     return next(new AppError('User is paying!', 400));
   }
-  const timeout = new Date().getTime() / 1000 + 1;
+  const timeout = Number.parseInt(new Date().getTime() / 1000 + 1);
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     // success_url: `${req.protocol}://${req.get('host')}/?tour=${
