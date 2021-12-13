@@ -3,7 +3,7 @@ const appError = require('./../utils/appError');
 const sendErrorProd = (err, res) => {
   // 1) Operational, trusted error: send message to client
   if (err.isOperational) {
-    res.status(err.statusCode).json({
+    return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
     });
@@ -35,10 +35,12 @@ module.exports = (err, req, res, next) => {
   // console.log(process.env.NODE_ENV);
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
+
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err }; // copy error object by using spread operator
+    let error = { ...err };
+    error.message = err.message;
 
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
@@ -47,7 +49,7 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, req, res);
   }
 };
 //!end      API component --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
