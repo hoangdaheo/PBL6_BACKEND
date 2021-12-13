@@ -70,6 +70,11 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    pendingTime: {
+      type: Date,
+      require: true,
+      default: Date.now(),
+    },
   },
   {
     timestamps: true,

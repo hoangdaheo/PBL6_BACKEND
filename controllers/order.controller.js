@@ -118,6 +118,9 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 1) get the currently booked tour
   const order = await Order.findById(req.params.orderId);
   // 2) create checkout session
+  if (order.pendingTime > Date.now()) {
+    return next(new AppError('User is paying!', 400));
+  }
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     // success_url: `${req.protocol}://${req.get('host')}/?tour=${
@@ -127,6 +130,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     success_url: `https://google.com`,
     cancel_url: `https://google.com`,
     customer_email: req.user.email,
+    expires_at: Date.now + 60 * 1000,
     client_reference_id: req.params.orderId,
     line_items: order.orderItems.map((item) => {
       return {
@@ -139,6 +143,8 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
       };
     }),
   });
+  order.pendingTime = Date.now() + 1000 * 90;
+  await order.save({ validateBeforeSave: false });
   // 3) create session as res
   res.status(200).json({
     status: 'success',
