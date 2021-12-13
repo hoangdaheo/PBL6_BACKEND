@@ -2,7 +2,7 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const Order = require('./../models/order.model');
 const factory = require('./handlerFactory');
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 function priceHandler(accumulator, currentValue) {
   return accumulator + currentValue.price * currentValue.qty;
 }
