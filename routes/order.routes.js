@@ -9,7 +9,9 @@ router
   .route('/')
   .get(orderController.getMyOrder)
   .post(cartController.removeItem, orderController.createOrder);
-router.route('/checkout-session/orderId', orderController.getCheckoutSession);
+router
+  .route('/checkout-session/orderId')
+  .get(authController.protect, orderController.getCheckoutSession);
 router.route('/:id').patch(orderController.cancelOrder);
 router
   .route('/allOrder')
