@@ -29,14 +29,14 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     shippingPrice = 90 + (12 * totalPrice) / 100;
   }
   totalPrice = totalPrice + shippingPrice;
-  const { shippingAddress, paymentMethod } = req.body;
+  const { shippingAddress } = req.body;
 
   const order = await Order.create({
     user,
     orderItems,
     totalPrice,
     shippingAddress,
-    paymentMethod,
+
     totalPrice,
     shippingPrice,
   });
