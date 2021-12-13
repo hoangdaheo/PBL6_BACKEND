@@ -130,7 +130,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     success_url: `https://google.com`,
     cancel_url: `https://google.com`,
     customer_email: req.user.email,
-    expires_at: Date.now() + 60 * 1000,
+    // expires_at: Date.now() + 60 * 1000,
     client_reference_id: req.params.orderId,
     line_items: order.orderItems.map((item) => {
       return {
