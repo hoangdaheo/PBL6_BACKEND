@@ -36,7 +36,6 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     orderItems,
     totalPrice,
     shippingAddress,
-
     totalPrice,
     shippingPrice,
   });
