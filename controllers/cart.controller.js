@@ -36,10 +36,19 @@ exports.addItem = catchAsync(async (req, res, next) => {
       user: req.user.id,
     });
   }
+  let tempQty = 0;
+  const tempItem = await CartItem.findOne({
+    product: productId,
+    cart: cart.id,
+    userSize: size,
+  });
+  if (tempItem) {
+    tempQty = tempItem.userQuantity;
+  }
   const item = await CartItem.findOneAndUpdate(
     { product: productId, cart: cart.id, userSize: size },
     {
-      userSize: size,
+      userSize: size + tempQty,
       userQuantity: quantity,
     },
     {
@@ -48,7 +57,7 @@ exports.addItem = catchAsync(async (req, res, next) => {
       rawResult: true,
     }
   );
-  console.log('NEW DOC', item.lastErrorObject.updatedExisting);
+  // console.log('NEW DOC', item.lastErrorObject.updatedExisting);
   if (!item.lastErrorObject.updatedExisting) {
     cart = await Cart.findOneAndUpdate(
       { user: req.user.id },
