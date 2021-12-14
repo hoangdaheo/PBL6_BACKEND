@@ -12,7 +12,10 @@ router
 router
   .route('/checkout-session/:orderId')
   .get(authController.protect, orderController.getCheckoutSession);
-router.route('/:id').patch(orderController.cancelOrder);
+router
+  .route('/:id')
+  .get(orderController.getOneOrder)
+  .patch(orderController.cancelOrder);
 router
   .route('/allOrder')
   .get(authController.restrictTo('admin'), orderController.getAllOrders);

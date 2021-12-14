@@ -127,8 +127,8 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     //   req.params.tourId
     // }&user=${req.user.id}&price=${tour.price}`,
     // cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
-    success_url: `https://google.com`,
-    cancel_url: `https://google.com`,
+    success_url: `http://localhost:3000`,
+    cancel_url: `http://localhost:3000`,
     customer_email: req.user.email,
     expires_at: timeout,
     client_reference_id: req.params.orderId,
@@ -151,3 +151,16 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     session,
   });
 });
+
+exports.webhookCheckout = (req, res, next) => {
+  const signature = req.headers['stripe-signature'];
+  try {
+  } catch (error) {}
+  const event = stripe.webhooks.constructEvent(
+    req.body,
+    signature,
+    process.env.STRIPE_WEBHOOK_SECRET
+  ); //string raw form
+};
+
+exports.getOneOrder = factory.getOne(Order);
