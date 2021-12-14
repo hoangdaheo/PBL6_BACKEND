@@ -49,8 +49,8 @@ exports.addItem = catchAsync(async (req, res, next) => {
   const item = await CartItem.findOneAndUpdate(
     { product: productId, cart: cart.id, userSize: size },
     {
-      userSize: size + tempQty,
-      userQuantity: quantity,
+      userSize: size,
+      userQuantity: quantity + tempQty,
     },
     {
       new: true,
