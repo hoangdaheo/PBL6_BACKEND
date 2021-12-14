@@ -16,7 +16,9 @@ router.route('/:id').patch(orderController.cancelOrder);
 router
   .route('/allOrder')
   .get(authController.restrictTo('admin'), orderController.getAllOrders);
-router.route('/:id/pay').put(orderController.updateOrderToPaid);
+router
+  .route('/:id/pay')
+  .put(authController.restrictTo('admin'), orderController.updateOrderToPaid);
 router
   .route('/:id/deliver')
   .put(
