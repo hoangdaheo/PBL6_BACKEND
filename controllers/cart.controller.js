@@ -45,7 +45,7 @@ exports.addItem = catchAsync(async (req, res, next) => {
   if (tempItem) {
     tempQty = tempItem.userQuantity;
   }
-  console.log(tempItem.userQuantity);
+  // console.log(tempItem.userQuantity);
   const item = await CartItem.findOneAndUpdate(
     { product: productId, cart: cart.id, userSize: size },
     {
@@ -69,10 +69,10 @@ exports.addItem = catchAsync(async (req, res, next) => {
         new: true,
       }
     );
-    console.log('isnew', cart);
+    // console.log('isnew', cart);
   } else {
     cart = await Cart.findOne({ user: req.user.id });
-    console.log('ismodified', cart);
+    // console.log('ismodified', cart);
   }
   res.status(200).json({
     status: 'success',
@@ -96,7 +96,7 @@ exports.removeItem = catchAsync(async (req, res, next) => {
         size: cartItem.userSize,
         product: cartItem.product.id,
       });
-      console.log('cart.controller.js:88', doc.size);
+      // console.log('cart.controller.js:88', doc.size);
 
       if (!cartItem) return false;
       if (doc.quantity < cartItem.userQuantity) {
