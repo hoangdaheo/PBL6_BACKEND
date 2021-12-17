@@ -190,12 +190,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     console.log(err);
     await user.save({ validateBeforeSave: false });
 
-    return next(
-      new AppError(
-        'There was an error sending the email. Try again later!',
-        500
-      )
-    );
+    return next(new AppError(err.message, 500));
   }
 });
 
