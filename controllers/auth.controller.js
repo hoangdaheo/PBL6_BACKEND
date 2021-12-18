@@ -45,11 +45,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
   console.log(newUser);
-  let cart = await Cart.findOne({ user: req.newUser._id });
+  let cart = await Cart.findOne({ user: newUser._id });
   if (!cart) {
     cart = await Cart.create({
       cartItem: [],
-      user: req.newUser._id,
+      user: newUser._id,
     });
   }
   createSendToken(newUser, 201, res);
