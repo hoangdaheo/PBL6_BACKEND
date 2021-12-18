@@ -5,6 +5,7 @@ const User = require('./../models/user.model');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
+const Cart = require('./../models/cart.model');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -43,7 +44,13 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });
-
+  let cart = await Cart.findOne({ user: req.newUser.id });
+  if (!cart) {
+    cart = await Cart.create({
+      cartItem: [],
+      user: req.newUser.id,
+    });
+  }
   createSendToken(newUser, 201, res);
 });
 
