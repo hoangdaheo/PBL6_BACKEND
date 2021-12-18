@@ -152,15 +152,31 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   });
 });
 
+const createOrderCheckout = async (session) => {
+  const orderId = session.client_reference_id;
+  const order = await Order.findById(orderId);
+  if (order) {
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    await order.save({ validateBeforeSave: false });
+  }
+};
 exports.webhookCheckout = (req, res, next) => {
   const signature = req.headers['stripe-signature'];
+  let event;
   try {
-  } catch (error) {}
-  const event = stripe.webhooks.constructEvent(
-    req.body,
-    signature,
-    process.env.STRIPE_WEBHOOK_SECRET
-  ); //string raw form
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    ); //string raw form
+  } catch (error) {
+    return res.status(400).send(`WebHook error: ${error.message}`);
+  }
+  if (event.type === 'checkout.session.completed') {
+    createOrderCheckout(event.data.object);
+  }
+  res.status(200).json({ received: true });
 };
 
 exports.getOneOrder = factory.getOne(Order);

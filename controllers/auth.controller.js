@@ -44,7 +44,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });
-  console.log(newUser);
+  // console.log(newUser);
   let cart = await Cart.findOne({ user: newUser._id });
   if (!cart) {
     cart = await Cart.create({
