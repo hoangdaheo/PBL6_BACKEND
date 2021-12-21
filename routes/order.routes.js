@@ -13,12 +13,12 @@ router
   .route('/checkout-session/:orderId')
   .get(authController.protect, orderController.getCheckoutSession);
 router
+  .route('/allOrder')
+  .get(authController.restrictTo('admin'), orderController.getAllOrders);
+router
   .route('/:id')
   .get(orderController.getOneOrder)
   .patch(orderController.cancelOrder);
-router
-  .route('/allOrder')
-  .get(authController.restrictTo('admin'), orderController.getAllOrders);
 router
   .route('/:id/pay')
   .put(authController.restrictTo('admin'), orderController.updateOrderToPaid);
