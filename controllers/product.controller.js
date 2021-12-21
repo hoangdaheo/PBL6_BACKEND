@@ -9,9 +9,11 @@ const cloudinary = require('./../utils/cloudinary');
 
 exports.getDistinct = catchAsync(async (req, res, next) => {
   const brand = await Product.find().distinct('brand');
+  const category = await Product.find().distinct('category');
   res.status(200).json({
     status: 'success',
     brand,
+    category,
   });
 });
 const multerStorage = multer.memoryStorage();
