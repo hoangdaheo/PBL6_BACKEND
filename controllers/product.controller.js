@@ -7,6 +7,13 @@ const factory = require('./handlerFactory');
 const Size = require('./../models/size.model');
 const cloudinary = require('./../utils/cloudinary');
 
+exports.getDistinct = catchAsync(async (req, res, next) => {
+  const brand = await Product.find().distinct('brand');
+  res.status(200).json({
+    status: 'success',
+    brand,
+  });
+});
 const multerStorage = multer.memoryStorage();
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {

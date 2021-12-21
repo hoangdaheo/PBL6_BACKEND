@@ -7,7 +7,7 @@ const reviewRouter = require('./review.routes');
 
 router.use('/:productId/cart', cartRouter);
 router.use('/:productId/reviews', reviewRouter);
-
+router.route('/getDistinct').get(productController.getDistinct);
 router
   .route('/')
   .get(productController.getProducts)
