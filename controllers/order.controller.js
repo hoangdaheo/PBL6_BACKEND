@@ -116,6 +116,9 @@ exports.updateOrderToDelivered = catchAsync(async (req, res, next) => {
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 1) get the currently booked tour
   const order = await Order.findById(req.params.orderId);
+  if (order.isPaid || order.isCanceled) {
+    return next(new AppError('Order was paid or cancelled!', 404));
+  }
   // 2) create checkout session
   if (order.pendingTime > Date.now()) {
     return next(new AppError('User is paying!', 400));
